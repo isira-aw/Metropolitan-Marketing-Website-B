@@ -40,7 +40,7 @@ public class AuthService {
         admin.setUsername(request.getUsername());
         admin.setEmail(request.getEmail());
         admin.setPassword(passwordEncoder.encode(request.getPassword()));
-        admin.setRole("ADMIN");
+        admin.setLicense(true); // Default: enabled
 
         adminRepository.save(admin);
 
@@ -50,12 +50,17 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        // Check if admin exists and has active license
+        Admin admin = adminRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        if (!admin.getLicense()) {
+            throw new RuntimeException("Admin access is disabled");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
-
-        Admin admin = adminRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
 
         String token = jwtUtil.generateToken(admin.getUsername());
 
