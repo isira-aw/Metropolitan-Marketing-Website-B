@@ -23,10 +23,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         Admin admin = adminRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Admin not found with username: " + username));
 
+        // Check if license is active
+        if (!admin.getLicense()) {
+            throw new RuntimeException("Admin access is disabled");
+        }
+
         return new User(
                 admin.getUsername(),
                 admin.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + admin.getRole()))
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"))
         );
     }
 }
