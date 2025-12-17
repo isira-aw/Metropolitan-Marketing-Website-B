@@ -1,5 +1,6 @@
 package com.marketing.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,12 +11,24 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+import com.marketing.entity.AboutUs;
+import com.marketing.entity.GalleryItem;
+import com.marketing.repository.AboutUsRepository;
+import com.marketing.repository.GalleryItemRepository;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FileStorageService {
 
     @Value("${file.upload-dir}")
     private String uploadDir;
+
+    @Autowired
+    private GalleryItemRepository galleryItemRepository;
+
+    @Autowired
+    private AboutUsRepository aboutUsRepository;
 
     public String storeFile(MultipartFile file) {
         try {
@@ -51,6 +64,50 @@ public class FileStorageService {
             }
         } catch (IOException ex) {
             throw new RuntimeException("Could not delete file", ex);
+        }
+    }
+
+    public List<String> findUnusedImages() {
+        try {
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                return Collections.emptyList();
+            }
+
+            // Get all files in uploads directory
+            Set<String> allFiles = Files.list(uploadPath)
+                    .filter(Files::isRegularFile)
+                    .map(path -> "/uploads/" + path.getFileName().toString())
+                    .collect(Collectors.toSet());
+
+            // Get all used image URLs from database
+            Set<String> usedImages = new HashSet<>();
+
+            // Add gallery images
+            usedImages.addAll(galleryItemRepository.findAll().stream()
+                    .map(GalleryItem::getImageUrl)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet()));
+
+            // Add about us owner image
+            aboutUsRepository.findAll().stream()
+                    .map(AboutUs::getOwnerImageUrl)
+                    .filter(Objects::nonNull)
+                    .forEach(usedImages::add);
+
+            // Find unused images
+            allFiles.removeAll(usedImages);
+            return new ArrayList<>(allFiles);
+
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not list files", ex);
+        }
+    }
+
+    public void deleteUnusedImages() {
+        List<String> unusedImages = findUnusedImages();
+        for (String imageUrl : unusedImages) {
+            deleteFile(imageUrl);
         }
     }
 }
