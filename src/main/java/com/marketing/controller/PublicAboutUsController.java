@@ -1,6 +1,6 @@
 package com.marketing.controller;
 
-import com.marketing.entity.AboutUs;
+import com.marketing.dto.response.AboutUsResponseDTO;
 import com.marketing.service.AboutUsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +14,7 @@ public class PublicAboutUsController {
     private AboutUsService aboutUsService;
 
     @GetMapping
-    public ResponseEntity<AboutUs> getAboutUs() {
+    public ResponseEntity<AboutUsResponseDTO> getAboutUs() {
         return ResponseEntity.ok(aboutUsService.getAboutUs());
     }
 }
