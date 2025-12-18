@@ -13,8 +13,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 import com.marketing.entity.AboutUs;
 import com.marketing.entity.GalleryItem;
+import com.marketing.entity.Product;
 import com.marketing.repository.AboutUsRepository;
 import com.marketing.repository.GalleryItemRepository;
+import com.marketing.repository.ProductRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,9 @@ public class FileStorageService {
 
     @Autowired
     private AboutUsRepository aboutUsRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     public String storeFile(MultipartFile file) {
         try {
@@ -94,6 +99,15 @@ public class FileStorageService {
                     .map(AboutUs::getOwnerImageUrl)
                     .filter(Objects::nonNull)
                     .forEach(usedImages::add);
+
+            // Add product images (imageUrl1 through imageUrl5)
+            productRepository.findAll().forEach(product -> {
+                if (product.getImageUrl1() != null) usedImages.add(product.getImageUrl1());
+                if (product.getImageUrl2() != null) usedImages.add(product.getImageUrl2());
+                if (product.getImageUrl3() != null) usedImages.add(product.getImageUrl3());
+                if (product.getImageUrl4() != null) usedImages.add(product.getImageUrl4());
+                if (product.getImageUrl5() != null) usedImages.add(product.getImageUrl5());
+            });
 
             // Find unused images
             allFiles.removeAll(usedImages);

@@ -7,9 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/admin/upload")
 public class FileUploadController {
@@ -20,6 +17,12 @@ public class FileUploadController {
     @PostMapping
     public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(FileUploadResponse.builder()
+                        .message("Please select a file to upload")
+                        .build());
+            }
+
             String fileUrl = fileStorageService.storeFile(file);
             FileUploadResponse response = FileUploadResponse.builder()
                     .fileName(file.getOriginalFilename())
@@ -30,10 +33,8 @@ public class FileUploadController {
                     .build();
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(FileUploadResponse.builder()
-                    .message(e.getMessage())
+                    .message("Failed to upload file: " + e.getMessage())
                     .build());
         }
     }
