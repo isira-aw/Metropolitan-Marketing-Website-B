@@ -1,5 +1,6 @@
 package com.marketing.controller;
 
+import com.marketing.dto.*;
 import com.marketing.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,17 +18,23 @@ public class FileUploadController {
     private FileStorageService fileStorageService;
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
             String fileUrl = fileStorageService.storeFile(file);
-            Map<String, String> response = new HashMap<>();
-            response.put("url", fileUrl);
-            response.put("message", "File uploaded successfully");
+            FileUploadResponse response = FileUploadResponse.builder()
+                    .fileName(file.getOriginalFilename())
+                    .fileUrl(fileUrl)
+                    .fileType(file.getContentType())
+                    .fileSize(file.getSize())
+                    .message("File uploaded successfully")
+                    .build();
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(FileUploadResponse.builder()
+                    .message(e.getMessage())
+                    .build());
         }
     }
 }

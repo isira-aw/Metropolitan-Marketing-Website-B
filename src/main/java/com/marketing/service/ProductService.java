@@ -1,6 +1,8 @@
 package com.marketing.service;
 
+import com.marketing.dto.*;
 import com.marketing.entity.Product;
+import com.marketing.mapper.ProductMapper;
 import com.marketing.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,42 +15,37 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable);
+    @Autowired
+    private ProductMapper productMapper;
+
+    public PageResponse<ProductResponse> getAllProducts(Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(pageable);
+        return productMapper.toPageResponse(productPage);
     }
 
-    public Page<Product> searchProducts(String search, String category, String brand, Pageable pageable) {
-        return productRepository.searchProducts(search, category, brand, pageable);
+    public PageResponse<ProductResponse> searchProducts(String search, String category, String brand, Pageable pageable) {
+        Page<Product> productPage = productRepository.searchProducts(search, category, brand, pageable);
+        return productMapper.toPageResponse(productPage);
     }
 
-    public Product getProductById(Long id) {
-        return productRepository.findById(id)
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+        return productMapper.toResponse(product);
     }
 
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
+    public ProductResponse createProduct(CreateProductRequest request) {
+        Product product = productMapper.toEntity(request);
+        Product savedProduct = productRepository.save(product);
+        return productMapper.toResponse(savedProduct);
     }
 
-    public Product updateProduct(Long id, Product updatedProduct) {
-        Product product = getProductById(id);
-        product.setName(updatedProduct.getName());
-        product.setDescription(updatedProduct.getDescription());
-        product.setDescription2(updatedProduct.getDescription2());
-        product.setCapacity(updatedProduct.getCapacity());
-        product.setPrice(updatedProduct.getPrice());
-        product.setBrand(updatedProduct.getBrand());
-        product.setCategory(updatedProduct.getCategory());
-        product.setWarranty(updatedProduct.getWarranty());
-        product.setResponsiblePerson(updatedProduct.getResponsiblePerson());
-
-        if (updatedProduct.getImageUrl1() != null) product.setImageUrl1(updatedProduct.getImageUrl1());
-        if (updatedProduct.getImageUrl2() != null) product.setImageUrl2(updatedProduct.getImageUrl2());
-        if (updatedProduct.getImageUrl3() != null) product.setImageUrl3(updatedProduct.getImageUrl3());
-        if (updatedProduct.getImageUrl4() != null) product.setImageUrl4(updatedProduct.getImageUrl4());
-        if (updatedProduct.getImageUrl5() != null) product.setImageUrl5(updatedProduct.getImageUrl5());
-
-        return productRepository.save(product);
+    public ProductResponse updateProduct(Long id, UpdateProductRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        productMapper.updateEntity(product, request);
+        Product updatedProduct = productRepository.save(product);
+        return productMapper.toResponse(updatedProduct);
     }
 
     public void deleteProduct(Long id) {

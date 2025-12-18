@@ -1,7 +1,8 @@
 package com.marketing.controller;
 
-import com.marketing.entity.ContactInfo;
+import com.marketing.dto.*;
 import com.marketing.service.ContactInfoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,14 +15,14 @@ public class AdminContactInfoController {
     private ContactInfoService contactInfoService;
 
     @GetMapping
-    public ResponseEntity<ContactInfo> getContactInfo() {
+    public ResponseEntity<ContactInfoResponse> getContactInfo() {
         return ResponseEntity.ok(contactInfoService.getContactInfo());
     }
 
     @PutMapping
-    public ResponseEntity<ContactInfo> updateContactInfo(@RequestBody ContactInfo contactInfo) {
+    public ResponseEntity<ContactInfoResponse> updateContactInfo(@Valid @RequestBody UpdateContactInfoRequest request) {
         try {
-            return ResponseEntity.ok(contactInfoService.updateContactInfo(contactInfo));
+            return ResponseEntity.ok(contactInfoService.updateContactInfo(request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

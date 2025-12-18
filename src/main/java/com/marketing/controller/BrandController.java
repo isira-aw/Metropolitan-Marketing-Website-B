@@ -1,7 +1,8 @@
 package com.marketing.controller;
 
-import com.marketing.entity.Brand;
+import com.marketing.dto.*;
 import com.marketing.service.BrandService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,23 +17,23 @@ public class BrandController {
     private BrandService brandService;
 
     @GetMapping
-    public ResponseEntity<List<Brand>> getAllBrands() {
+    public ResponseEntity<List<BrandResponse>> getAllBrands() {
         return ResponseEntity.ok(brandService.getAllBrands());
     }
 
     @PostMapping
-    public ResponseEntity<?> createBrand(@RequestBody Brand brand) {
+    public ResponseEntity<?> createBrand(@Valid @RequestBody CreateBrandRequest request) {
         try {
-            return ResponseEntity.ok(brandService.createBrand(brand));
+            return ResponseEntity.ok(brandService.createBrand(request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateBrand(@PathVariable Long id, @RequestBody Brand brand) {
+    public ResponseEntity<?> updateBrand(@PathVariable Long id, @Valid @RequestBody UpdateBrandRequest request) {
         try {
-            return ResponseEntity.ok(brandService.updateBrand(id, brand));
+            return ResponseEntity.ok(brandService.updateBrand(id, request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

@@ -1,6 +1,8 @@
 package com.marketing.service;
 
+import com.marketing.dto.*;
 import com.marketing.entity.Admin;
+import com.marketing.mapper.AdminMapper;
 import com.marketing.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,94 +19,101 @@ public class AdminProfileService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public Admin getAdminByUsername(String username) {
-        return adminRepository.findByUsername(username)
+    @Autowired
+    private AdminMapper adminMapper;
+
+    public AdminProfileResponse getAdminProfileByUsername(String username) {
+        Admin admin = adminRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
+        return adminMapper.toProfileResponse(admin);
     }
 
-    public List<Admin> getAllAdmins() {
-        return adminRepository.findAll();
+    public List<AdminResponse> getAllAdmins() {
+        List<Admin> admins = adminRepository.findAll();
+        return adminMapper.toResponseList(admins);
     }
 
-    public Admin updateProfile(String currentUsername, Admin updatedAdmin, String newPassword) {
-        Admin admin = getAdminByUsername(currentUsername);
+    public AdminProfileResponse updateProfile(String currentUsername, UpdateAdminRequest request) {
+        Admin admin = adminRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
 
         // Update username if changed and not taken
-        if (!admin.getUsername().equals(updatedAdmin.getUsername())) {
-            if (adminRepository.existsByUsername(updatedAdmin.getUsername())) {
+        if (request.getUsername() != null && !admin.getUsername().equals(request.getUsername())) {
+            if (adminRepository.existsByUsername(request.getUsername())) {
                 throw new RuntimeException("Username already taken");
             }
-            admin.setUsername(updatedAdmin.getUsername());
+            admin.setUsername(request.getUsername());
         }
 
         // Update email if changed and not taken
-        if (!admin.getEmail().equals(updatedAdmin.getEmail())) {
-            if (adminRepository.existsByEmail(updatedAdmin.getEmail())) {
+        if (request.getEmail() != null && !admin.getEmail().equals(request.getEmail())) {
+            if (adminRepository.existsByEmail(request.getEmail())) {
                 throw new RuntimeException("Email already taken");
             }
-            admin.setEmail(updatedAdmin.getEmail());
+            admin.setEmail(request.getEmail());
         }
 
         // Update password if provided
-        if (newPassword != null && !newPassword.isEmpty()) {
-            admin.setPassword(passwordEncoder.encode(newPassword));
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            admin.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
         // Update license
-        if (updatedAdmin.getLicense() != null) {
-            admin.setLicense(updatedAdmin.getLicense());
+        if (request.getLicense() != null) {
+            admin.setLicense(request.getLicense());
         }
 
-        return adminRepository.save(admin);
+        Admin updatedAdmin = adminRepository.save(admin);
+        return adminMapper.toProfileResponse(updatedAdmin);
     }
 
-    public Admin updateAdminById(Long id, Admin updatedAdmin, String newPassword) {
+    public AdminResponse updateAdminById(Long id, UpdateAdminRequest request) {
         Admin admin = adminRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
 
         // Update username if changed and not taken
-        if (!admin.getUsername().equals(updatedAdmin.getUsername())) {
-            if (adminRepository.existsByUsername(updatedAdmin.getUsername())) {
+        if (request.getUsername() != null && !admin.getUsername().equals(request.getUsername())) {
+            if (adminRepository.existsByUsername(request.getUsername())) {
                 throw new RuntimeException("Username already taken");
             }
-            admin.setUsername(updatedAdmin.getUsername());
+            admin.setUsername(request.getUsername());
         }
 
         // Update email if changed and not taken
-        if (!admin.getEmail().equals(updatedAdmin.getEmail())) {
-            if (adminRepository.existsByEmail(updatedAdmin.getEmail())) {
+        if (request.getEmail() != null && !admin.getEmail().equals(request.getEmail())) {
+            if (adminRepository.existsByEmail(request.getEmail())) {
                 throw new RuntimeException("Email already taken");
             }
-            admin.setEmail(updatedAdmin.getEmail());
+            admin.setEmail(request.getEmail());
         }
 
         // Update password if provided
-        if (newPassword != null && !newPassword.isEmpty()) {
-            admin.setPassword(passwordEncoder.encode(newPassword));
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            admin.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
         // Update license
-        if (updatedAdmin.getLicense() != null) {
-            admin.setLicense(updatedAdmin.getLicense());
+        if (request.getLicense() != null) {
+            admin.setLicense(request.getLicense());
         }
 
-        return adminRepository.save(admin);
+        Admin updatedAdmin = adminRepository.save(admin);
+        return adminMapper.toResponse(updatedAdmin);
     }
 
-    public Admin createAdmin(Admin newAdmin, String password) {
-        if (adminRepository.existsByUsername(newAdmin.getUsername())) {
+    public AdminResponse createAdmin(CreateAdminRequest request) {
+        if (adminRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already exists");
         }
-        if (adminRepository.existsByEmail(newAdmin.getEmail())) {
+        if (adminRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
-        newAdmin.setPassword(passwordEncoder.encode(password));
-        if (newAdmin.getLicense() == null) {
-            newAdmin.setLicense(true);
-        }
+        Admin admin = adminMapper.toEntity(request);
+        admin.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        return adminRepository.save(newAdmin);
+        Admin savedAdmin = adminRepository.save(admin);
+        return adminMapper.toResponse(savedAdmin);
     }
 
     public void deleteAdmin(Long id) {

@@ -1,7 +1,6 @@
 package com.marketing.controller;
 
-import com.marketing.entity.Brand;
-import com.marketing.entity.ProductCategory;
+import com.marketing.dto.*;
 import com.marketing.service.BrandService;
 import com.marketing.service.ProductCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +20,12 @@ public class PublicMetadataController {
     private ProductCategoryService categoryService;
 
     @GetMapping("/brands")
-    public ResponseEntity<List<Brand>> getAllBrands() {
+    public ResponseEntity<List<BrandResponse>> getAllBrands() {
         return ResponseEntity.ok(brandService.getAllBrands());
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<List<ProductCategory>> getAllCategories() {
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 }

@@ -1,7 +1,8 @@
 package com.marketing.controller;
 
-import com.marketing.entity.AboutUs;
+import com.marketing.dto.*;
 import com.marketing.service.AboutUsService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,14 +15,14 @@ public class AdminAboutUsController {
     private AboutUsService aboutUsService;
 
     @GetMapping
-    public ResponseEntity<AboutUs> getAboutUs() {
+    public ResponseEntity<AboutUsResponse> getAboutUs() {
         return ResponseEntity.ok(aboutUsService.getAboutUs());
     }
 
     @PutMapping
-    public ResponseEntity<AboutUs> updateAboutUs(@RequestBody AboutUs aboutUs) {
+    public ResponseEntity<AboutUsResponse> updateAboutUs(@Valid @RequestBody UpdateAboutUsRequest request) {
         try {
-            return ResponseEntity.ok(aboutUsService.updateAboutUs(aboutUs));
+            return ResponseEntity.ok(aboutUsService.updateAboutUs(request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

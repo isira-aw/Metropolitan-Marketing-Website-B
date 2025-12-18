@@ -1,6 +1,8 @@
 package com.marketing.service;
 
+import com.marketing.dto.*;
 import com.marketing.entity.ProductCategory;
+import com.marketing.mapper.CategoryMapper;
 import com.marketing.repository.ProductCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,28 +15,35 @@ public class ProductCategoryService {
     @Autowired
     private ProductCategoryRepository productCategoryRepository;
 
-    public List<ProductCategory> getAllCategories() {
-        return productCategoryRepository.findAllByOrderByNameAsc();
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    public List<CategoryResponse> getAllCategories() {
+        List<ProductCategory> categories = productCategoryRepository.findAllByOrderByNameAsc();
+        return categoryMapper.toResponseList(categories);
     }
 
-    public ProductCategory createCategory(ProductCategory category) {
-        if (productCategoryRepository.existsByName(category.getName())) {
+    public CategoryResponse createCategory(CreateCategoryRequest request) {
+        if (productCategoryRepository.existsByName(request.getName())) {
             throw new RuntimeException("Category already exists");
         }
-        return productCategoryRepository.save(category);
+        ProductCategory category = categoryMapper.toEntity(request);
+        ProductCategory savedCategory = productCategoryRepository.save(category);
+        return categoryMapper.toResponse(savedCategory);
     }
 
-    public ProductCategory updateCategory(Long id, ProductCategory updatedCategory) {
+    public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
         ProductCategory category = productCategoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        if (!category.getName().equals(updatedCategory.getName()) &&
-                productCategoryRepository.existsByName(updatedCategory.getName())) {
+        if (!category.getName().equals(request.getName()) &&
+                productCategoryRepository.existsByName(request.getName())) {
             throw new RuntimeException("Category name already exists");
         }
 
-        category.setName(updatedCategory.getName());
-        return productCategoryRepository.save(category);
+        categoryMapper.updateEntity(category, request);
+        ProductCategory updatedCategory = productCategoryRepository.save(category);
+        return categoryMapper.toResponse(updatedCategory);
     }
 
     public void deleteCategory(Long id) {

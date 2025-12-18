@@ -1,9 +1,9 @@
 package com.marketing.controller;
 
-import com.marketing.entity.Product;
+import com.marketing.dto.*;
 import com.marketing.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,7 +18,7 @@ public class AdminProductController {
     private ProductService productService;
 
     @GetMapping
-    public ResponseEntity<Page<Product>> getAllProducts(
+    public ResponseEntity<PageResponse<ProductResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
@@ -27,7 +27,7 @@ public class AdminProductController {
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
-        Page<Product> products;
+        PageResponse<ProductResponse> products;
         if (search != null || category != null || brand != null) {
             products = productService.searchProducts(search, category, brand, pageable);
         } else {
@@ -38,7 +38,7 @@ public class AdminProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(productService.getProductById(id));
         } catch (Exception e) {
@@ -47,18 +47,18 @@ public class AdminProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
         try {
-            return ResponseEntity.ok(productService.createProduct(product));
+            return ResponseEntity.ok(productService.createProduct(request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody UpdateProductRequest request) {
         try {
-            return ResponseEntity.ok(productService.updateProduct(id, product));
+            return ResponseEntity.ok(productService.updateProduct(id, request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

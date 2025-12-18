@@ -1,6 +1,8 @@
 package com.marketing.service;
 
+import com.marketing.dto.*;
 import com.marketing.entity.GalleryItem;
+import com.marketing.mapper.GalleryItemMapper;
 import com.marketing.repository.GalleryItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,34 +16,32 @@ public class GalleryService {
     @Autowired
     private GalleryItemRepository galleryItemRepository;
 
-    public List<GalleryItem> getAllItems() {
-        return galleryItemRepository.findAllByOrderByDisplayOrderAsc();
+    @Autowired
+    private GalleryItemMapper galleryItemMapper;
+
+    public List<GalleryItemResponse> getAllItems() {
+        List<GalleryItem> items = galleryItemRepository.findAllByOrderByDisplayOrderAsc();
+        return galleryItemMapper.toResponseList(items);
     }
 
-    public GalleryItem getItemById(Long id) {
-        return galleryItemRepository.findById(id)
+    public GalleryItemResponse getItemById(Long id) {
+        GalleryItem item = galleryItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Gallery item not found"));
+        return galleryItemMapper.toResponse(item);
     }
 
-    public GalleryItem createItem(GalleryItem item) {
-        if (item.getDisplayOrder() == null) {
-            item.setDisplayOrder(0);
-        }
-        return galleryItemRepository.save(item);
+    public GalleryItemResponse createItem(CreateGalleryItemRequest request) {
+        GalleryItem item = galleryItemMapper.toEntity(request);
+        GalleryItem savedItem = galleryItemRepository.save(item);
+        return galleryItemMapper.toResponse(savedItem);
     }
 
-    public GalleryItem updateItem(Long id, GalleryItem updatedItem) {
-        GalleryItem item = getItemById(id);
-        item.setTitle(updatedItem.getTitle());
-        item.setDescription(updatedItem.getDescription());
-        item.setCategory(updatedItem.getCategory());
-        if (updatedItem.getImageUrl() != null) {
-            item.setImageUrl(updatedItem.getImageUrl());
-        }
-        if (updatedItem.getDisplayOrder() != null) {
-            item.setDisplayOrder(updatedItem.getDisplayOrder());
-        }
-        return galleryItemRepository.save(item);
+    public GalleryItemResponse updateItem(Long id, UpdateGalleryItemRequest request) {
+        GalleryItem item = galleryItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Gallery item not found"));
+        galleryItemMapper.updateEntity(item, request);
+        GalleryItem updatedItem = galleryItemRepository.save(item);
+        return galleryItemMapper.toResponse(updatedItem);
     }
 
     public void deleteItem(Long id) {
@@ -49,10 +49,12 @@ public class GalleryService {
     }
 
     @Transactional
-    public void reorderItems(List<Long> itemIds) {
+    public void reorderItems(ReorderGalleryRequest request) {
+        List<Long> itemIds = request.getGalleryItemIds();
         for (int i = 0; i < itemIds.size(); i++) {
             Long itemId = itemIds.get(i);
-            GalleryItem item = getItemById(itemId);
+            GalleryItem item = galleryItemRepository.findById(itemId)
+                    .orElseThrow(() -> new RuntimeException("Gallery item not found"));
             item.setDisplayOrder(i);
             galleryItemRepository.save(item);
         }

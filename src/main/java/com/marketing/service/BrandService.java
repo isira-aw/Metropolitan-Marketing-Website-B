@@ -1,6 +1,8 @@
 package com.marketing.service;
 
+import com.marketing.dto.*;
 import com.marketing.entity.Brand;
+import com.marketing.mapper.BrandMapper;
 import com.marketing.repository.BrandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,28 +15,35 @@ public class BrandService {
     @Autowired
     private BrandRepository brandRepository;
 
-    public List<Brand> getAllBrands() {
-        return brandRepository.findAllByOrderByNameAsc();
+    @Autowired
+    private BrandMapper brandMapper;
+
+    public List<BrandResponse> getAllBrands() {
+        List<Brand> brands = brandRepository.findAllByOrderByNameAsc();
+        return brandMapper.toResponseList(brands);
     }
 
-    public Brand createBrand(Brand brand) {
-        if (brandRepository.existsByName(brand.getName())) {
+    public BrandResponse createBrand(CreateBrandRequest request) {
+        if (brandRepository.existsByName(request.getName())) {
             throw new RuntimeException("Brand already exists");
         }
-        return brandRepository.save(brand);
+        Brand brand = brandMapper.toEntity(request);
+        Brand savedBrand = brandRepository.save(brand);
+        return brandMapper.toResponse(savedBrand);
     }
 
-    public Brand updateBrand(Long id, Brand updatedBrand) {
+    public BrandResponse updateBrand(Long id, UpdateBrandRequest request) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
 
-        if (!brand.getName().equals(updatedBrand.getName()) &&
-                brandRepository.existsByName(updatedBrand.getName())) {
+        if (!brand.getName().equals(request.getName()) &&
+                brandRepository.existsByName(request.getName())) {
             throw new RuntimeException("Brand name already exists");
         }
 
-        brand.setName(updatedBrand.getName());
-        return brandRepository.save(brand);
+        brandMapper.updateEntity(brand, request);
+        Brand updatedBrand = brandRepository.save(brand);
+        return brandMapper.toResponse(updatedBrand);
     }
 
     public void deleteBrand(Long id) {

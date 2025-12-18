@@ -1,6 +1,6 @@
 package com.marketing.controller;
 
-import com.marketing.entity.ContactInfo;
+import com.marketing.dto.*;
 import com.marketing.service.ContactInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +14,7 @@ public class PublicContactInfoController {
     private ContactInfoService contactInfoService;
 
     @GetMapping
-    public ResponseEntity<ContactInfo> getContactInfo() {
+    public ResponseEntity<ContactInfoResponse> getContactInfo() {
         return ResponseEntity.ok(contactInfoService.getContactInfo());
     }
 }

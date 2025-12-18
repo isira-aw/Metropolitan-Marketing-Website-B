@@ -1,13 +1,13 @@
 package com.marketing.controller;
 
-import com.marketing.entity.GalleryItem;
+import com.marketing.dto.*;
 import com.marketing.service.GalleryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/gallery")
@@ -17,12 +17,12 @@ public class AdminGalleryController {
     private GalleryService galleryService;
 
     @GetMapping
-    public ResponseEntity<List<GalleryItem>> getAllItems() {
+    public ResponseEntity<List<GalleryItemResponse>> getAllItems() {
         return ResponseEntity.ok(galleryService.getAllItems());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GalleryItem> getItemById(@PathVariable Long id) {
+    public ResponseEntity<GalleryItemResponse> getItemById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(galleryService.getItemById(id));
         } catch (Exception e) {
@@ -31,18 +31,18 @@ public class AdminGalleryController {
     }
 
     @PostMapping
-    public ResponseEntity<GalleryItem> createItem(@RequestBody GalleryItem item) {
+    public ResponseEntity<GalleryItemResponse> createItem(@Valid @RequestBody CreateGalleryItemRequest request) {
         try {
-            return ResponseEntity.ok(galleryService.createItem(item));
+            return ResponseEntity.ok(galleryService.createItem(request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GalleryItem> updateItem(@PathVariable Long id, @RequestBody GalleryItem item) {
+    public ResponseEntity<GalleryItemResponse> updateItem(@PathVariable Long id, @Valid @RequestBody UpdateGalleryItemRequest request) {
         try {
-            return ResponseEntity.ok(galleryService.updateItem(id, item));
+            return ResponseEntity.ok(galleryService.updateItem(id, request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -59,10 +59,9 @@ public class AdminGalleryController {
     }
 
     @PostMapping("/reorder")
-    public ResponseEntity<Void> reorderItems(@RequestBody Map<String, List<Long>> payload) {
+    public ResponseEntity<Void> reorderItems(@Valid @RequestBody ReorderGalleryRequest request) {
         try {
-            List<Long> itemIds = payload.get("itemIds");
-            galleryService.reorderItems(itemIds);
+            galleryService.reorderItems(request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

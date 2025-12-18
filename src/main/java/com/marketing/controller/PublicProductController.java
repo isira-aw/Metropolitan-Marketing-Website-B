@@ -1,9 +1,8 @@
 package com.marketing.controller;
 
-import com.marketing.entity.Product;
+import com.marketing.dto.*;
 import com.marketing.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,7 +17,7 @@ public class PublicProductController {
     private ProductService productService;
 
     @GetMapping
-    public ResponseEntity<Page<Product>> getAllProducts(
+    public ResponseEntity<PageResponse<ProductResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String search,
@@ -31,7 +30,7 @@ public class PublicProductController {
                 Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Product> products;
+        PageResponse<ProductResponse> products;
         if (search != null || category != null || brand != null) {
             products = productService.searchProducts(search, category, brand, pageable);
         } else {
@@ -42,7 +41,7 @@ public class PublicProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(productService.getProductById(id));
         } catch (Exception e) {

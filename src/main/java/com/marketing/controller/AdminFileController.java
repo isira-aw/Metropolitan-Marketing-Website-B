@@ -1,13 +1,12 @@
 package com.marketing.controller;
 
+import com.marketing.dto.*;
 import com.marketing.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/files")
@@ -17,35 +16,39 @@ public class AdminFileController {
     private FileStorageService fileStorageService;
 
     @GetMapping("/unused")
-    public ResponseEntity<Map<String, Object>> getUnusedImages() {
+    public ResponseEntity<UnusedFilesResponse> getUnusedImages() {
         try {
             List<String> unusedImages = fileStorageService.findUnusedImages();
-            Map<String, Object> response = new HashMap<>();
-            response.put("count", unusedImages.size());
-            response.put("files", unusedImages);
+            UnusedFilesResponse response = UnusedFilesResponse.builder()
+                    .unusedFiles(unusedImages)
+                    .count(unusedImages.size())
+                    .message("Found " + unusedImages.size() + " unused files")
+                    .build();
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(UnusedFilesResponse.builder()
+                    .message("Error: " + e.getMessage())
+                    .build());
         }
     }
 
     @DeleteMapping("/unused")
-    public ResponseEntity<Map<String, String>> deleteUnusedImages() {
+    public ResponseEntity<UnusedFilesResponse> deleteUnusedImages() {
         try {
             List<String> unusedImages = fileStorageService.findUnusedImages();
             int count = unusedImages.size();
             fileStorageService.deleteUnusedImages();
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Deleted " + count + " unused images");
-            response.put("count", String.valueOf(count));
+            UnusedFilesResponse response = UnusedFilesResponse.builder()
+                    .unusedFiles(unusedImages)
+                    .count(count)
+                    .message("Deleted " + count + " unused images")
+                    .build();
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(UnusedFilesResponse.builder()
+                    .message("Error: " + e.getMessage())
+                    .build());
         }
     }
 }

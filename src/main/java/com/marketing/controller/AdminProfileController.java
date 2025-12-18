@@ -1,7 +1,8 @@
 package com.marketing.controller;
 
-import com.marketing.entity.Admin;
+import com.marketing.dto.*;
 import com.marketing.service.AdminProfileService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,13 +19,11 @@ public class AdminProfileController {
     private AdminProfileService adminProfileService;
 
     @GetMapping("/profile")
-    public ResponseEntity<Admin> getProfile(Authentication authentication) {
+    public ResponseEntity<AdminProfileResponse> getProfile(Authentication authentication) {
         try {
             String username = authentication.getName();
-            Admin admin = adminProfileService.getAdminByUsername(username);
-            // Don't send password to frontend
-            admin.setPassword(null);
-            return ResponseEntity.ok(admin);
+            AdminProfileResponse profile = adminProfileService.getAdminProfileByUsername(username);
+            return ResponseEntity.ok(profile);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -33,51 +32,27 @@ public class AdminProfileController {
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(
             Authentication authentication,
-            @RequestBody Map<String, Object> payload
+            @Valid @RequestBody UpdateAdminRequest request
     ) {
         try {
             String currentUsername = authentication.getName();
-
-            Admin updatedAdmin = new Admin();
-            updatedAdmin.setUsername((String) payload.get("username"));
-            updatedAdmin.setEmail((String) payload.get("email"));
-            updatedAdmin.setLicense((Boolean) payload.get("license"));
-
-            String newPassword = (String) payload.get("password");
-
-            Admin admin = adminProfileService.updateProfile(currentUsername, updatedAdmin, newPassword);
-            admin.setPassword(null);
-
-            return ResponseEntity.ok(admin);
+            AdminProfileResponse profile = adminProfileService.updateProfile(currentUsername, request);
+            return ResponseEntity.ok(profile);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
     @GetMapping("/admins")
-    public ResponseEntity<List<Admin>> getAllAdmins() {
-        List<Admin> admins = adminProfileService.getAllAdmins();
-        // Remove passwords
-        admins.forEach(admin -> admin.setPassword(null));
+    public ResponseEntity<List<AdminResponse>> getAllAdmins() {
+        List<AdminResponse> admins = adminProfileService.getAllAdmins();
         return ResponseEntity.ok(admins);
     }
 
     @PostMapping("/admins")
-    public ResponseEntity<?> createAdmin(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> createAdmin(@Valid @RequestBody CreateAdminRequest request) {
         try {
-            Admin newAdmin = new Admin();
-            newAdmin.setUsername((String) payload.get("username"));
-            newAdmin.setEmail((String) payload.get("email"));
-            newAdmin.setLicense((Boolean) payload.getOrDefault("license", true));
-
-            String password = (String) payload.get("password");
-            if (password == null || password.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Password is required"));
-            }
-
-            Admin admin = adminProfileService.createAdmin(newAdmin, password);
-            admin.setPassword(null);
-
+            AdminResponse admin = adminProfileService.createAdmin(request);
             return ResponseEntity.ok(admin);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -87,19 +62,10 @@ public class AdminProfileController {
     @PutMapping("/admins/{id}")
     public ResponseEntity<?> updateAdmin(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> payload
+            @Valid @RequestBody UpdateAdminRequest request
     ) {
         try {
-            Admin updatedAdmin = new Admin();
-            updatedAdmin.setUsername((String) payload.get("username"));
-            updatedAdmin.setEmail((String) payload.get("email"));
-            updatedAdmin.setLicense((Boolean) payload.get("license"));
-
-            String newPassword = (String) payload.get("password");
-
-            Admin admin = adminProfileService.updateAdminById(id, updatedAdmin, newPassword);
-            admin.setPassword(null);
-
+            AdminResponse admin = adminProfileService.updateAdminById(id, request);
             return ResponseEntity.ok(admin);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
