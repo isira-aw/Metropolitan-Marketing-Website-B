@@ -26,9 +26,6 @@ public class DataInitializer implements CommandLineRunner {
     private ContactInfoRepository contactInfoRepository;
 
     @Autowired
-    private GalleryItemRepository galleryItemRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -67,27 +64,6 @@ public class DataInitializer implements CommandLineRunner {
             contactInfo.setLinkedinUrl("https://linkedin.com/company/yourcompany");
             contactInfoRepository.save(contactInfo);
             System.out.println("Default Contact Info created");
-        }
-
-        // Initialize sample gallery items if not exists
-        if (galleryItemRepository.count() == 0) {
-            GalleryItem item1 = new GalleryItem();
-            item1.setTitle("Sample Image 1");
-            item1.setDescription("This is a sample gallery item. Replace with your own content.");
-            item1.setCategory("Category A");
-            item1.setImageUrl("/uploads/sample1.jpg");
-            item1.setDisplayOrder(0);
-            galleryItemRepository.save(item1);
-
-            GalleryItem item2 = new GalleryItem();
-            item2.setTitle("Sample Image 2");
-            item2.setDescription("Another sample gallery item for demonstration.");
-            item2.setCategory("Category B");
-            item2.setImageUrl("/uploads/sample2.jpg");
-            item2.setDisplayOrder(1);
-            galleryItemRepository.save(item2);
-
-            System.out.println("Sample gallery items created");
         }
 
         // Initialize sample products if not exists

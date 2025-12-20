@@ -12,9 +12,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 import com.marketing.entity.AboutUs;
-import com.marketing.entity.GalleryItem;
 import com.marketing.repository.AboutUsRepository;
-import com.marketing.repository.GalleryItemRepository;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +23,8 @@ public class FileStorageService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    @Autowired
-    private GalleryItemRepository galleryItemRepository;
+//    @Autowired
+//    private GalleryItemRepository galleryItemRepository;
 
     @Autowired
     private AboutUsRepository aboutUsRepository;
@@ -83,11 +82,11 @@ public class FileStorageService {
             // Get all used image URLs from database
             Set<String> usedImages = new HashSet<>();
 
-            // Add gallery images
-            usedImages.addAll(galleryItemRepository.findAll().stream()
-                    .map(GalleryItem::getImageUrl)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet()));
+//            // Add gallery images
+//            usedImages.addAll(galleryItemRepository.findAll().stream()
+//                    .map(GalleryItem::getImageUrl)
+//                    .filter(Objects::nonNull)
+//                    .collect(Collectors.toSet()));
 
             // Add about us owner image
             aboutUsRepository.findAll().stream()
