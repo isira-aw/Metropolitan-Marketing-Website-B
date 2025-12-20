@@ -23,6 +23,18 @@ public class Brand {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "link")
+    private String link;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

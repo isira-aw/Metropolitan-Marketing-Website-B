@@ -1,6 +1,6 @@
 package com.marketing.controller;
 
-import com.marketing.entity.Brand;
+import com.marketing.dto.response.BrandResponse;
 import com.marketing.entity.ProductCategory;
 import com.marketing.service.BrandService;
 import com.marketing.service.ProductCategoryService;
@@ -21,7 +21,7 @@ public class PublicMetadataController {
     private ProductCategoryService categoryService;
 
     @GetMapping("/brands")
-    public ResponseEntity<List<Brand>> getAllBrands() {
+    public ResponseEntity<List<BrandResponse>> getAllBrands() {
         return ResponseEntity.ok(brandService.getAllBrands());
     }
 

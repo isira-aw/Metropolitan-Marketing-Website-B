@@ -1,6 +1,7 @@
 package com.marketing.controller;
 
-import com.marketing.entity.Brand;
+import com.marketing.dto.request.BrandRequest;
+import com.marketing.dto.response.BrandResponse;
 import com.marketing.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,23 +17,37 @@ public class BrandController {
     private BrandService brandService;
 
     @GetMapping
-    public ResponseEntity<List<Brand>> getAllBrands() {
+    public ResponseEntity<List<BrandResponse>> getAllBrands() {
         return ResponseEntity.ok(brandService.getAllBrands());
     }
 
-    @PostMapping
-    public ResponseEntity<?> createBrand(@RequestBody Brand brand) {
+    @GetMapping("/active")
+    public ResponseEntity<List<BrandResponse>> getActiveBrands() {
+        return ResponseEntity.ok(brandService.getActiveBrands());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getBrandById(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(brandService.createBrand(brand));
+            return ResponseEntity.ok(brandService.getBrandById(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createBrand(@RequestBody BrandRequest request) {
+        try {
+            return ResponseEntity.ok(brandService.createBrand(request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateBrand(@PathVariable Long id, @RequestBody Brand brand) {
+    public ResponseEntity<?> updateBrand(@PathVariable Long id, @RequestBody BrandRequest request) {
         try {
-            return ResponseEntity.ok(brandService.updateBrand(id, brand));
+            return ResponseEntity.ok(brandService.updateBrand(id, request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
