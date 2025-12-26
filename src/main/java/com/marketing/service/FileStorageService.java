@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class FileStorageService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
+
     @Value("${file.upload-dir}")
     private String uploadDir;
 
@@ -31,25 +35,35 @@ public class FileStorageService {
 
     public String storeFile(MultipartFile file) {
         try {
+            logger.info("Starting file upload process");
+            logger.info("Upload directory configured as: {}", uploadDir);
+
             // Create upload directory if it doesn't exist
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
+                logger.info("Upload directory does not exist. Creating: {}", uploadPath.toAbsolutePath());
                 Files.createDirectories(uploadPath);
             }
 
+            logger.info("Upload directory absolute path: {}", uploadPath.toAbsolutePath());
+
             // Generate unique filename
             String originalFilename = file.getOriginalFilename();
-            String extension = originalFilename != null && originalFilename.contains(".") 
-                    ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
                     : "";
             String filename = UUID.randomUUID().toString() + extension;
 
             // Copy file to upload directory
             Path targetLocation = uploadPath.resolve(filename);
+            logger.info("Saving file to: {}", targetLocation.toAbsolutePath());
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return "/uploads/" + filename;
+            String fileUrl = "/uploads/" + filename;
+            logger.info("File uploaded successfully. URL: {}", fileUrl);
+            return fileUrl;
         } catch (IOException ex) {
+            logger.error("Failed to store file", ex);
             throw new RuntimeException("Could not store file. Please try again!", ex);
         }
     }
@@ -59,9 +73,16 @@ public class FileStorageService {
             if (fileUrl != null && fileUrl.startsWith("/uploads/")) {
                 String filename = fileUrl.substring("/uploads/".length());
                 Path filePath = Paths.get(uploadDir).resolve(filename);
-                Files.deleteIfExists(filePath);
+                logger.info("Attempting to delete file: {}", filePath.toAbsolutePath());
+                boolean deleted = Files.deleteIfExists(filePath);
+                if (deleted) {
+                    logger.info("File deleted successfully: {}", fileUrl);
+                } else {
+                    logger.warn("File not found for deletion: {}", fileUrl);
+                }
             }
         } catch (IOException ex) {
+            logger.error("Failed to delete file: {}", fileUrl, ex);
             throw new RuntimeException("Could not delete file", ex);
         }
     }
