@@ -18,11 +18,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.Customizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthFilter;
@@ -32,13 +36,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        logger.info("Configuring Security Filter Chain");
+        logger.info("Public endpoints: /api/auth/**, /api/public/**, /uploads/**");
+
         http
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints - order matters! Most specific first
+                .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
+                // Protected endpoints
                 .requestMatchers("/api/admin/**").authenticated()
                 .anyRequest().authenticated()
             )
